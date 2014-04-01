@@ -11,3 +11,7 @@ cp -r target Dockerfile docker/
 
 cd docker
 sudo docker build -t ${1} --rm .
+
+if [ "$2" == "push" ]; then
+	sudo docker push ${1}
+fi	

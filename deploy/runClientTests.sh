@@ -28,4 +28,4 @@ done
 cd cameoJSClient
 ./test.sh test http://localhost:${imagePort}/app/
 
-#sudo docker stop ${containerId}
+sudo docker stop ${containerId}
