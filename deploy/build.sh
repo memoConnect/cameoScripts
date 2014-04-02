@@ -40,7 +40,7 @@ cd ${dir}
 
 # get current version
 if [ -s ./version ]; then
-	version=${cat ./version}
+	version=$(cat ./version)
 else
 	version="no version"
 fi
@@ -133,9 +133,11 @@ case "${buildMode}" in
 		cd ${clientDir}
 		checkoutLatestTag "stage_" 
 		clientVersion=${version}.${currentBuild}	
-
+		;;
+		
 	"prod")
 		# todo
+		;;
 
 	*)
 		echo Invalid mode: ${buildMode}
