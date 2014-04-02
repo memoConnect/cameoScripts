@@ -7,7 +7,7 @@ fi
 # copy to subfolder to decrease context
 rm -rf docker
 mkdir docker
-cp -r target Dockerfile docker/
+cp -r target Dockerfile embedmongo docker/
 
 cd docker
 sudo docker build -t ${1} --rm .

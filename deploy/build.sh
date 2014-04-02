@@ -86,8 +86,9 @@ case "${buildMode}" in
 		secretFile="secret_local.conf"
 	
 		if [ ! -z apiPort ]; then
-			apiUrl="http://localhost:${apiPort}/api/v1"
+			apiPort=9000
 		fi
+		apiUrl="http://localhost:${apiPort}/api/v1"
 
 		cd ${serverDir}
 		if [ "${latestServer}" == true ]; then
@@ -145,13 +146,19 @@ case "${buildMode}" in
 		;;
 esac
 
-# build client
-echo -e "\e[33m[ CameoBuild - Building client, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
+# build client	
 cd ${clientDir}
-./compile.sh ${buildMode} ${apiUrl} ${clientVersion}
+if [ ! "${buildMode}" == "test" ]; then
+	echo -e "\e[33m[ CameoBuild - Building client with mobile apps, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
+	./compile.sh --mode=${buildMode} --apiUrl=${apiUrl} --version=${clientVersion} --phonegap
+else
+	echo -e "\e[33m[ CameoBuild - Building client, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
+	./compile.sh --mode=${buildMode} --apiUrl=${apiUrl} --version=${clientVersion} 
+fi
+
 # remove old client stuff
 rm -rf ${serverDir}/public
-# copy to public dir of server
+# copy compiled client to public dir of server
 mkdir -p ${serverDir}/public
 cp -r ${clientDir}/dist/* ${serverDir}/public/
 

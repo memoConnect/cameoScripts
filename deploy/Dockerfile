@@ -8,6 +8,7 @@ RUN apt-get upgrade -y
 RUN apt-get install -y --no-install-recommends openjdk-7-jdk
 
 ADD ./target /opt/app
+ADD ./embedmongo /root/.embedmongo/linux
 
 EXPOSE 9000
 
