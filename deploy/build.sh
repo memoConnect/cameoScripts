@@ -18,7 +18,10 @@ for i in "$@" ; do
 	    ;;
 	    -p=*|--port*)
 		    apiPort="${i#*=}"
-			;;
+		;;
+		--no-quick-compile)
+			quickCompileOff=true
+		;;
 	    *)
 	      echo Unkown option: ${i}
 	      exit 1
@@ -26,7 +29,6 @@ for i in "$@" ; do
 	esac
 done
 
-echo -e "\e[33m[ CameoBuild - Build mode: ${buildMode} ]\033[0m"
 
 # define repositories
 serverGit=https://github.com/memoConnect/cameoServer.git
@@ -36,13 +38,22 @@ clientGit=https://github.com/memoConnect/cameoJSClient.git
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd ${dir}
 
+# get current version
+if [ -s ./version ]; then
+	version=${cat ./version}
+else
+	version="no version"
+fi
+
+echo -e "\e[33m[ CameoBuild - Build mode: ${buildMode}, Version: ${version} ]\033[0m"
+
 serverDir=${dir}/$(echo ${serverGit} | rev | cut -d"/" -f1 | rev | cut -d"." -f1)
 clientDir=${dir}/$(echo ${clientGit} | rev | cut -d"/" -f1 | rev | cut -d"." -f1) 
 secretDir=${dir}/cameoSecrets
 
 echo -e "\e[33m[ CameoBuild - Updating repositories ]\033[0m"
 
-# clone repos if dirs dont exist already
+# clone repos if dirs dont exist
 export GIT_SSL_NO_VERIFY=true
 if [ ! -d "${serverDir}" ]; then
 	git clone ${serverGit}
@@ -58,70 +69,73 @@ if [ ! -d "${secretDir}" ]; then
 fi
 
 quickCompile=false
+currentBuild=""
+
+# helper function to get latest tag
+function checkoutLatestTag {
+	git fetch 
+	git fetch --tags
+	tag=$(git for-each-ref --format="%(refname)" --sort=-taggerdate refs/tags | grep -i $1 | head -n1)
+	git checkout ${tag}
+	currentBuild=$(echo ${tag} | cut -d'_' -f2)
+}
 
 case "${buildMode}" in 
-	"test"|"dev")
-
+	"test")
 		quickCompile=true
-		
-		if [ "${buildMode}" == "dev" ];then
-			secretFile="secret_dev.conf"
-		else
-			if [ ! -z apiPort ]; then
-				apiUrl="http://localhost:${apiPort}/api/v1"
-			fi
-			
-			secretFile="secret_local.conf"
-		fi		
-		
+		secretFile="secret_local.conf"
+	
+		if [ ! -z apiPort ]; then
+			apiUrl="http://localhost:${apiPort}/api/v1"
+		fi
 
-		echo -e "\e[33m[ CameoBuild - Updating server ]\033[0m"
 		cd ${serverDir}
 		if [ "${latestServer}" == true ]; then
 			git checkout dev
 			git pull
-			serverVersion="latest"
+			serverVersion=${version}_"dev"
 		else
-			# find latest successfull build tag	
-			git fetch 
-			git fetch --tags
-			tag=$( git describe --tags $(git rev-list --tags --max-count=1))
-			git checkout tags/${tag}
-			serverVersion=$(echo ${tag} | cut -d'_' -f2)
+			checkoutLatestTag "build_" 
+			serverVersion=${version}.${currentBuild}			
 		fi
 
-		echo -e "\e[33m[ CameoBuild - Updating client ]\033[0m"
 		cd ${clientDir}
 		if [ "${latestClient}" == true ]; then
 			git checkout dev
 			git pull
+			clientVersion=${version}_"dev"
 		else
-			# find latest successfull build tag	
-			git fetch 
-			git fetch --tags
-			tag=$( git describe --tags $(git rev-list --tags --max-count=1))
-			git checkout tags/${tag}
+			checkoutLatestTag "build_" 
+			clientVersion=${version}.${currentBuild}	
 		fi	
+		;;
+
+	"dev")
+		quickCompile=true
+		secretFile="secret_dev.conf"
+		
+		cd ${serverDir}
+		checkoutLatestTag "build_" 
+		serverVersion=${version}.${currentBuild}			
+
+		cd ${clientDir}
+		checkoutLatestTag "build_" 
+		clientVersion=${version}.${currentBuild}	
 		;;
 
 	"stage")
 		secretFile="secret_stage.conf"
-		serverVersion="stage"
-		# checkout stage tag for both
+
 		cd ${serverDir}
-		git fetch 
-		git fetch --tags
-		git checkout tags/stage
+		checkoutLatestTag "stage_" 
+		serverVersion=${version}.${currentBuild}			
+
 		cd ${clientDir}
-		git fetch 
-		git fetch --tags
-		git checkout tags/stage
-		;;
+		checkoutLatestTag "stage_" 
+		clientVersion=${version}.${currentBuild}	
 
 	"prod")
-		secretFile="secret_prod.conf"
-		serverVersion="prod"
-		;;
+		# todo
 
 	*)
 		echo Invalid mode: ${buildMode}
@@ -130,9 +144,9 @@ case "${buildMode}" in
 esac
 
 # build client
-echo -e "\e[33m[ CameoBuild - Building client, mode: ${buildMode} ]\033[0m"
+echo -e "\e[33m[ CameoBuild - Building client, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
 cd ${clientDir}
-./compile.sh ${buildMode} ${apiUrl}
+./compile.sh ${buildMode} ${apiUrl} ${clientVersion}
 # remove old client stuff
 rm -rf ${serverDir}/public
 # copy to public dir of server
@@ -140,9 +154,9 @@ mkdir -p ${serverDir}/public
 cp -r ${clientDir}/dist/* ${serverDir}/public/
 
 # build server
-echo -e "\e[33m[ CameoBuild - Building server, quickCompile: ${quickCompile}]\033[0m"
+echo -e "\e[33m[ CameoBuild - Building server, version: ${serverVersion}, quickCompile: ${quickCompile} ]\033[0m"
 cd ${serverDir}
-if [ "${quickCompile}" == true ]; then
+if [ "${quickCompile}" == true ] && [ ! "${quickCompileOff}" == true ]; then
 	./compile.sh ${serverVersion} quick
 else
 	./compile.sh ${serverVersion}
