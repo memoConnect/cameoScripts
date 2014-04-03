@@ -10,12 +10,12 @@ for i in "$@" ; do
 	    -m=*|--mode=*)			
 		    buildMode="${i#*=}"
 	    ;;
-	    -latestServer*)
+	    -latestServer|--latestServer)
 	    	latestServer=true
 	    ;;
-	    -latestClient*)
+	    -latestClient|--latestClient)
 	    	latestClient=true
-	    ;;
+	    ;;	
 	    -p=*|--port*)
 		    apiPort="${i#*=}"
 		;;
@@ -128,12 +128,26 @@ case "${buildMode}" in
 		secretFile="secret_stage.conf"
 
 		cd ${serverDir}
-		checkoutLatestTag "stage_" 
-		serverVersion=${version}.${currentBuild}			
+		if [ "${latestServer}" == true ]; then
+			git fetch 
+			git fetch --tags
+			git checkout tags/stage
+			serverVersion=${version}_"stage"
+		else
+			checkoutLatestTag "stage_" 
+			serverVersion=${version}.${currentBuild}
+		fi				
 
 		cd ${clientDir}
-		checkoutLatestTag "stage_" 
-		clientVersion=${version}.${currentBuild}	
+		if [ "${latestClient}" == true ]; then
+			git fetch 
+			git fetch --tags
+			git checkout tags/stage
+			clientVersion=${version}_"stage"
+		else
+			checkoutLatestTag "stage_" 
+			clientVersion=${version}.${currentBuild}
+		fi	
 		;;
 		
 	"prod")
