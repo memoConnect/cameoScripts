@@ -3,6 +3,7 @@ set -e
 
 # default buildmode ist test
 buildMode=test
+apiPort=9000
 
 #handle arguments
 for i in "$@" ; do
@@ -18,9 +19,6 @@ for i in "$@" ; do
 	    ;;	
 	    -p=*|--port*)
 		    apiPort="${i#*=}"
-		;;
-		--no-quick-compile)
-			quickCompileOff=true
 		;;
 	    *)
 	      echo Unkown option: ${i}
@@ -69,6 +67,8 @@ if [ ! -d "${secretDir}" ]; then
 fi
 
 quickCompile=false
+buildApps=false
+copyFixtures=false
 currentBuild=""
 
 # helper function to get latest tag
@@ -83,12 +83,11 @@ function checkoutLatestTag {
 case "${buildMode}" in 
 	"test")
 		quickCompile=true
+		copyFixtures=true
+
 		secretFile="secret_local.conf"
 	
-		if [ -z apiPort ]; then
-			apiPort=9000
-		fi
-		apiUrl="http://localhost:${apiPort}/api/v1"
+		apiUrlArg="--apiUrl=http://localhost:${apiPort}/api/v1"
 
 		cd ${serverDir}
 		if [ "${latestServer}" == true ]; then
@@ -111,8 +110,29 @@ case "${buildMode}" in
 		fi	
 		;;
 
+	"stagetest")
+		copyFixtures=true
+
+		secretFile="secret_local.conf"
+	
+		apiUrlArg="--apiUrl=http://localhost:${apiPort}/api/v1"
+
+		cd ${serverDir} 
+		git fetch 
+		git fetch --tags
+		git checkout tags/stage
+		serverVersion=${version}_"stage"
+
+		cd ${clientDir}
+		git fetch 
+		git fetch --tags
+		git checkout tags/stage
+		clientVersion=${version}_"stage"
+		;;
+
 	"dev")
 		quickCompile=true
+		buildApps=true
 		secretFile="secret_dev.conf"
 		
 		cd ${serverDir}
@@ -125,34 +145,21 @@ case "${buildMode}" in
 		;;
 
 	"stage")
+		buildApps=true
 		secretFile="secret_stage.conf"
 
 		cd ${serverDir}
-		if [ "${latestServer}" == true ]; then
-			git fetch 
-			git fetch --tags
-			git checkout tags/stage
-			serverVersion=${version}_"stage"
-		else
-			checkoutLatestTag "stage_" 
-			serverVersion=${version}.${currentBuild}
-		fi				
+		checkoutLatestTag "stage_" 
+		serverVersion=${version}.${currentBuild}
 
 		cd ${clientDir}
-		if [ "${latestClient}" == true ]; then
-			git fetch 
-			git fetch --tags
-			git checkout tags/stage
-			clientVersion=${version}_"stage"
-		else
-			checkoutLatestTag "stage_" 
-			clientVersion=${version}.${currentBuild}
-		fi	
+		checkoutLatestTag "stage_" 
+		clientVersion=${version}.${currentBuild}
 		;;
 		
-	"prod")
+	#"prod")
 		# todo
-		;;
+	#	;;
 
 	*)
 		echo Invalid mode: ${buildMode}
@@ -162,12 +169,12 @@ esac
 
 # build client	
 cd ${clientDir}
-if [ ! "${buildMode}" == "test" ]; then
+if [ "${buildApps}" == true ]; then
 	echo -e "\e[33m[ CameoBuild - Building client with mobile apps, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
-	./compile.sh --mode=${buildMode} --apiUrl=${apiUrl} --version=${clientVersion} --phonegap
+	./compile.sh --mode=${buildMode} ${apiUrlArg} --version=${clientVersion} --phonegap
 else
 	echo -e "\e[33m[ CameoBuild - Building client, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
-	./compile.sh --mode=${buildMode} --apiUrl=${apiUrl} --version=${clientVersion} 
+	./compile.sh --mode=${buildMode} ${apiUrlArg} --version=${clientVersion} 
 fi
 
 # remove old client stuff
@@ -179,7 +186,7 @@ cp -r ${clientDir}/dist/* ${serverDir}/public/
 # build server
 echo -e "\e[33m[ CameoBuild - Building server, version: ${serverVersion}, quickCompile: ${quickCompile} ]\033[0m"
 cd ${serverDir}
-if [ "${quickCompile}" == true ] && [ ! "${quickCompileOff}" == true ]; then
+if [ "${quickCompile}" == true ]; then
 	./compile.sh ${serverVersion} quick
 else
 	./compile.sh ${serverVersion}
@@ -193,7 +200,8 @@ rm -fr ${dir}/target
 cp -r ${serverDir}/target/universal/stage ${dir}/target
 
 # copy fixtures
-if [ "${buildMode}" == "test" ]; then
+if [ "${copyFixtures}" == true ]; then
+	echo -e "\e[33m[ CameoBuild - Copying fixtures ]\033[0m"
 	cp -r ${serverDir}/fixtures ${dir}/target
 fi	
 
