@@ -85,7 +85,7 @@ case "${buildMode}" in
 		quickCompile=true
 		secretFile="secret_local.conf"
 	
-		if [ ! -z apiPort ]; then
+		if [ -z apiPort ]; then
 			apiPort=9000
 		fi
 		apiUrl="http://localhost:${apiPort}/api/v1"
