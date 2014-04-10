@@ -27,4 +27,8 @@ cd cameoJSClient
 ./test.sh test http://localhost:${imagePort}/app/
 
 echo -e "\e[33m[ CameoTest - Stopping test container ]\033[0m"
-sudo docker kill ${containerId}
+sudo docker stop ${containerId}
+echo -e "\e[33m[ CameoTest - Removing test container ]\033[0m"
+sudo docker rm ${containerId}
+
+
