@@ -82,7 +82,7 @@ function checkoutLatestTag {
 
 case "${buildMode}" in 
 	"test")
-		quickCompile=false
+		quickCompile=true
 		copyFixtures=true
 
 		secretFile="secret_local.conf"
@@ -131,7 +131,7 @@ case "${buildMode}" in
 		;;
 
 	"dev")
-		quickCompile=false
+		quickCompile=true
 		buildApps=true
 		secretFile="secret_dev.conf"
 		
