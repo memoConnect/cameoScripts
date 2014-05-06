@@ -82,7 +82,7 @@ function checkoutLatestTag {
 
 case "${buildMode}" in 
 	"test")
-		quickCompile=true
+		quickCompile=false
 		copyFixtures=true
 
 		secretFile="secret_local.conf"
@@ -131,7 +131,7 @@ case "${buildMode}" in
 		;;
 
 	"dev")
-		quickCompile=true
+		quickCompile=false
 		buildApps=true
 		secretFile="secret_dev.conf"
 		
@@ -171,7 +171,7 @@ esac
 cd ${clientDir}
 if [ "${buildApps}" == true ]; then
 	echo -e "\e[33m[ CameoBuild - Building client with mobile apps, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
-	./compile.sh --mode=${buildMode} ${apiUrlArg} --version=${clientVersion} --phonegap
+	./compile.sh --mode=${buildMode} ${apiUrlArg} --version=${clientVersion} #--phonegap 
 else
 	echo -e "\e[33m[ CameoBuild - Building client, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
 	./compile.sh --mode=${buildMode} ${apiUrlArg} --version=${clientVersion} 
