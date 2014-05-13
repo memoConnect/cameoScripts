@@ -145,7 +145,7 @@ case "${buildMode}" in
 		;;
 
 	"stage")
-		buildApps=false
+		buildApps=true
 		secretFile="secret_stage.conf"
 
 		cd ${serverDir}
