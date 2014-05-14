@@ -3,6 +3,7 @@ set -e
 
 # default buildmode ist test
 buildMode=test
+buildApps=false
 apiPort=9000
 
 #handle arguments
@@ -19,6 +20,9 @@ for i in "$@" ; do
 	    ;;	
 	    -p=*|--port*)
 		    apiPort="${i#*=}"
+		;;
+		-a|--build-apps)
+			buildApps=true
 		;;
 	    *)
 	      echo Unkown option: ${i}
@@ -67,7 +71,6 @@ if [ ! -d "${secretDir}" ]; then
 fi
 
 quickCompile=false
-buildApps=false
 copyFixtures=false
 currentBuild=""
 
@@ -132,7 +135,6 @@ case "${buildMode}" in
 
 	"dev")
 		quickCompile=true
-		buildApps=false
 		secretFile="secret_dev.conf"
 		
 		cd ${serverDir}
@@ -145,7 +147,6 @@ case "${buildMode}" in
 		;;
 
 	"stage")
-		buildApps=false
 		secretFile="secret_stage.conf"
 
 		cd ${serverDir}
