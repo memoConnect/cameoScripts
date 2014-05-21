@@ -15,8 +15,10 @@ for i in "$@" ; do
 	    ;;
 	    --registry=*)
 			registry="${i#*=}"	
-		--update-www)	
+	    ;;
+	    --update-www)	
 			updateWww=true
+            ;;
 	    *)
 	      echo Unkown option: ${i}
 	      exit 1
@@ -41,14 +43,17 @@ function stopContainer {
 if [ "${updateWww}" == true ]; then
 	echo "Updating www image"
 	stopContainer ${wwwImage}	
-	sudo docker pull ${registry}:${wwwImage}
-	sudo docker run -p ${wwwPort}:9000 -d $1
+	name=${registry}/${wwwImage}
+	sudo docker pull ${name}
+	sudo docker run -p ${wwwPort}:9000 -d ${name}
 fi
 
 #update app
 if [ ! -z "${appImage}" ]; then
 	echo "Updating app image"
 	stopContainer ${appImage}	
-	sudo docker pull ${registry}:${appImage}
-	sudo docker run -p ${appPort}:9000 -d $1
+	name=${registry}/${appImage}
+	echo name: ${name}
+	sudo docker pull ${name}
+	sudo docker run -p ${appPort}:9000 -d ${name}
 fi
