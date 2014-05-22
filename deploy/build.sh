@@ -90,7 +90,7 @@ case "${buildMode}" in
 
 		secretFile="secret_local.conf"
 	
-		apiUrlArg="--apiUrl=http://localhost:${apiPort}/api/v1"
+		apiUrlArg="--apiUrl=http://localhost:${apiPort}/a/v1"
 
 		cd ${serverDir}
 		if [ "${latestServer}" == true ]; then
@@ -118,7 +118,7 @@ case "${buildMode}" in
 
 		secretFile="secret_local.conf"
 	
-		apiUrlArg="--apiUrl=http://localhost:${apiPort}/api/v1"
+		apiUrlArg="--apiUrl=http://localhost:${apiPort}/a/v1"
 
 		cd ${serverDir} 
 		git fetch 
