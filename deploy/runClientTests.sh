@@ -24,7 +24,7 @@ while [ -z "${log}" ] && [ "$timeout" -gt 0 ]; do
 done
 
 cd cameoJSClient
-./test.sh test http://localhost:${imagePort}/app/
+./test.sh test http://localhost:${imagePort}/m/
 
 echo -e "\e[33m[ CameoTest - Stopping test container ]\033[0m"
 sudo docker stop ${containerId}
