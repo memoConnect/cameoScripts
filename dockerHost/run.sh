@@ -3,7 +3,7 @@ set -e
 
 # constants
 updateWww=false
-wwwImage="cameoWWW"
+wwwImage="cameowww"
 wwwPort=9001
 appPort=9000
 
