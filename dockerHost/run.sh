@@ -33,9 +33,10 @@ fi
 
 # helper functions
 function stopContainer {
+	echo "stoping container" $1
 	containerId=$(sudo docker ps | grep $1 | cut -f1 -d' ')
-	if [ ! -z ${container} ]; then
-	   sudo docker stop ${container}
+	if [ ! -z ${containerId} ]; then
+	   sudo docker stop ${containerId}
 	fi
 }
 
