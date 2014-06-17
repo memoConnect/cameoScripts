@@ -54,7 +54,6 @@ if [ ! -z "${appImage}" ]; then
 	echo "Updating app image"
 	stopContainer ${appImage}	
 	name=${registry}/${appImage}
-	echo name: ${name}
 	sudo docker pull ${name}
 	sudo docker run -p ${appPort}:9000 -d ${name}
 fi
