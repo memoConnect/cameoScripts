@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ -e ./running_stage ]; then
+	echo Deploy Running scheduled another
+	echo +1 > ./running_stage
+	exit 0
+fi
+
+touch ./running_stage
+
+set -e
+
+backendKey=$(redis-cli -h 172.16.23.124 keys \* | grep backend)
+instances=$(redis-cli -h 172.16.23.124 smembers $backendKey | grep -v dummy |  sed 's/:80//')
+
+./deploy cameo-stage 172.16.23.2:5000 ${instances}
+
+if [ -s ./running_stage ]; then
+	echo Deploy scheduled, running it now
+	rm ./running_stage
+	./deploy_stage
+else
+	rm ./running_stage
+fi

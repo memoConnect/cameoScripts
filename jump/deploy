@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# check argument
+if [ -z "${1}" ] ;then
+	echo provide image name
+	exit 1
+fi
+if [ -z "${2}" ] ;then
+	echo provide registry
+	exit 1
+fi
+
+instances=("${@:3}")
+
+for instance in "${instances[@]}"; do
+        echo -e "\e[32m[CameoDeploy - Stoping instance ${instance} ]\033[0m"
+	ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null deploy@${instance} "sudo /opt/cameoScripts/dockerHost/stop.sh ${1}"
+done
+
+for instance in "${instances[@]}"; do
+        echo -e "\e[32m[CameoDeploy - Deploying on instance ${instance} ]\033[0m"
+	ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null deploy@${instance} "sudo /opt/cameoScripts/dockerHost/run.sh --registry=${2} --app-image=${1}"
+done
