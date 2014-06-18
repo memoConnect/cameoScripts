@@ -158,9 +158,17 @@ case "${buildMode}" in
 		clientVersion=${version}.${currentBuild}
 		;;
 		
-	#"prod")
-		# todo
-	#	;;
+	"prod")
+		secretFile="secret_prod.conf"
+
+		cd ${serverDir}
+		git checkout master
+		git pull
+
+		cd ${clientDir}
+		git checkout master
+		git pull
+		;;
 
 	*)
 		echo Invalid mode: ${buildMode}
