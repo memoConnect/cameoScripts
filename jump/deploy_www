@@ -1,22 +1,22 @@
 #!/bin/bash
 
-registry="172.16.23.2:5000"
+if [ -e ./running_www ]; then
+	echo Deploy Running scheduled another
+	echo +1 > ./running_www
+	exit 0
+fi
 
-backendKey=$(redis-cli -h 172.16.23.130 keys \* | grep backend)
-instancesDev=$(redis-cli -h 172.16.23.130 smembers $backendKey | grep -v dummy |  sed 's/:80//')
+touch ./running_www
 
-backendKey=$(redis-cli -h 172.16.23.124 keys \* | grep backend)
-instancesStage=$(redis-cli -h 172.16.23.124 smembers $backendKey | grep -v dummy |  sed 's/:80//')
+set -e
 
-instances=( ${instancesDev[@]} ${instancesStage[@]} )
+./deploy cameo-www 172.16.23.2:5000 172.16.23.130 -update-www
+./deploy cameo-www 172.16.23.2:5000 172.16.23.124 -update-www
 
-
-for instance in "${instances[@]}"; do
-        echo -e "\e[32m[CameoDeploy - Stoping instance ${instance} ]\033[0m"
-        ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null deploy@${instance} "sudo /opt/cameoScripts/dockerHost/stop.sh cameowww"
-done
-
-for instance in "${instances[@]}"; do
-        echo -e "\e[32m[CameoDeploy - Deploying on instance ${instance} ]\033[0m"
-	ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null deploy@${instance} "sudo /opt/cameoScripts/dockerHost/run.sh --registry=${registry} --update-www"
-done
+if [ -s ./running_www ]; then
+	echo Deploy scheduled, running it now
+	rm ./running_www
+	./deploy_www
+else
+	rm ./running_www
+fi
