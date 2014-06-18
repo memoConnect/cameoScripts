@@ -161,6 +161,9 @@ case "${buildMode}" in
 	"prod")
 		secretFile="secret_prod.conf"
 
+		serverVersion=${version}
+		clientVersion=${version}
+		
 		cd ${serverDir}
 		git checkout master
 		git pull
