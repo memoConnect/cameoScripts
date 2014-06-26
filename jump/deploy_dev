@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ -e ./running_dev ]; then
+	echo Deploy Running scheduled another
+	echo +1 > ./running_dev
+	exit 0
+fi
+
+touch ./running_dev
+
+set -e
+
+./deploy cameo-dev 172.16.23.2:5000 172.16.23.130
+
+if [ -s ./running_dev ]; then
+	echo Deploy scheduled, running it now
+	rm ./running_dev
+	./deploy_dev
+else
+	rm ./running_dev
+fi
