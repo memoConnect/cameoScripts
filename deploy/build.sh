@@ -5,6 +5,8 @@ set -e
 buildMode=test
 buildApps=false
 apiPort=9000
+syslogFacility=LOCAL0
+jumpHostIP=172.16.23.2
 
 #handle arguments
 for i in "$@" ; do
@@ -76,6 +78,7 @@ currentBuild=""
 
 # helper function to get latest tag
 function checkoutLatestTag {
+	git reset --hard
 	git fetch 
 	git fetch --tags
 	tag=$(git for-each-ref --format="%(refname)" --sort=-taggerdate refs/tags | grep -i $1 | head -n1)
@@ -136,6 +139,8 @@ case "${buildMode}" in
 	"dev")
 		quickCompile=true
 		secretFile="secret_dev.conf"
+		syslogFacility=LOCAL0
+		jumpHostIP=172.16.23.2
 		
 		cd ${serverDir}
 		checkoutLatestTag "build_" 
@@ -148,6 +153,8 @@ case "${buildMode}" in
 
 	"stage")
 		secretFile="secret_stage.conf"
+		syslogFacility=LOCAL1
+		jumpHostIP=172.16.23.2
 
 		cd ${serverDir}
 		checkoutLatestTag "stage_" 
@@ -160,15 +167,19 @@ case "${buildMode}" in
 		
 	"prod")
 		secretFile="secret_prod.conf"
+		syslogFacility=LOCAL2
+		jumpHostIP=172.16.42.2
 
 		serverVersion=${version}
 		clientVersion=${version}
 		
 		cd ${serverDir}
+		git reset --hard
 		git checkout master
 		git pull
 
 		cd ${clientDir}
+		git reset --hard
 		git checkout master
 		git pull
 		;;
@@ -198,6 +209,9 @@ cp -r ${clientDir}/dist/* ${serverDir}/public/
 # build server
 echo -e "\e[33m[ CameoBuild - Building server, version: ${serverVersion}, quickCompile: ${quickCompile} ]\033[0m"
 cd ${serverDir}
+# adjust loggin configuration
+sed -i "s/XIPX/${jumpHostIP}/g" conf/logger.xml
+sed -i "s/XFACILITYX/${syslogFacility}/g" conf/logger.xml
 if [ "${quickCompile}" == true ]; then
 	./compile.sh ${serverVersion} quick
 else
