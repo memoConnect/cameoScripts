@@ -168,7 +168,7 @@ case "${buildMode}" in
 	"prod")
 		secretFile="secret_prod.conf"
 		syslogFacility=LOCAL2
-		jumpHostIP=172.16.42.2
+		jumpHostIP=172.16.42.4
 
 		serverVersion=${version}
 		clientVersion=${version}
