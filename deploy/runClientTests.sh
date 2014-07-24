@@ -1,6 +1,7 @@
 #!/bin/bash
 imageName="cameo-test"
 imagePort=9000
+embedMongoFile="/opt/mongodb-linux-x86_64-2.6.3.tgz"
 
 if [ ! -z "$1" ]; then
 	imagePort=$1
@@ -8,10 +9,12 @@ fi
 
 echo -e "\e[33m[ CameoTest - Running tests on port: ${imagePort} ]\033[0m"
 
+if[ -e $embedMongoFile ];then 
+	cp -v $embedMongoFile embedmongo/
+fi
 
 ./createDockerImage.sh ${imageName}
 sudo docker run -p ${imagePort}:9000 -d ${imageName}
-
 
 containerId=$(sudo docker ps | grep ${imageName} | cut -f1 -d' ')
 
