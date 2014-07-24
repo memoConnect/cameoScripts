@@ -210,6 +210,7 @@ cp -r ${clientDir}/dist/* ${serverDir}/public/
 echo -e "\e[33m[ CameoBuild - Building server, version: ${serverVersion}, quickCompile: ${quickCompile} ]\033[0m"
 cd ${serverDir}
 # adjust loggin configuration
+cp conf/logger_deploy.xml conf/logger.xml
 sed -i "s/XIPX/${jumpHostIP}/g" conf/logger.xml
 sed -i "s/XFACILITYX/${syslogFacility}/g" conf/logger.xml
 if [ "${quickCompile}" == true ]; then
