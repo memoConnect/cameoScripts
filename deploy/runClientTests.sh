@@ -9,7 +9,7 @@ fi
 
 echo -e "\e[33m[ CameoTest - Running tests on port: ${imagePort} ]\033[0m"
 
-if[ -e $embedMongoFile ];then 
+if [ -e $embedMongoFile ];then 
 	mkdir -p embedmongo
 	cp -v $embedMongoFile embedmongo/
 fi

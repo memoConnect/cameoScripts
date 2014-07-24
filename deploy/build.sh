@@ -90,6 +90,7 @@ case "${buildMode}" in
 	"test")
 		quickCompile=true
 		copyFixtures=true
+		jumpHostIP=localhost
 
 		secretFile="secret_local.conf"
 	
@@ -118,6 +119,7 @@ case "${buildMode}" in
 
 	"stagetest")
 		copyFixtures=true
+		jumpHostIP=localhost
 
 		secretFile="secret_local.conf"
 	
