@@ -201,10 +201,10 @@ esac
 # unlock phonegap signing keys
 echo -e "\e[33m[ CameoBuild - Unlocking phonegap singing keys ]\033[0m"
 if [ -n "${phonegap_keys_ios_link}" ]; then
-	curl -u ${phonegap_user}:${phonegap_password} -d 'data={"password":"${phonegap_keys_ios_certpwd}"}' -X PUT https://build.phonegap.com${phonegap_keys_ios_link}
+	curl -u ${phonegap_user}:${phonegap_password} -d "data={\"password\":\"${phonegap_keys_ios_certpwd}\"}" -X PUT https://build.phonegap.com${phonegap_keys_ios_link}
 fi
 if [ -n "${phonegap_keys_android_link}" ]; then
-	curl -u ${phonegap_user}:${phonegap_password} -d 'data={"key_pw":"${phonegap_keys_android_certpwd}","keystore_pw":"${phonegap_keys_android_keystorepwd}"}' -X PUT https://build.phonegap.com${phonegap_keys_android_link}
+	curl -u ${phonegap_user}:${phonegap_password} -d "data={\"key_pw\":\"${phonegap_keys_android_certpwd}\",\"keystore_pw\":\"${phonegap_keys_android_keystorepwd}\"}" -X PUT https://build.phonegap.com${phonegap_keys_android_link}
 fi
 
 # build client	
