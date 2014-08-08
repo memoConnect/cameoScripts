@@ -29,13 +29,5 @@ done
 
 for instance in "${instances[@]}"; do
         echo -e "\e[32m[CameoDeploy - Deploying on instance ${instance} ]\033[0m"
-	if [ "${4}" == "-update-www" ] ;then
-		echo updating www	
-		ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null deploy@${instance} "sudo /opt/cameoScripts/dockerHost/run.sh --registry=${2} --update-www"
-	else	
-		ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null deploy@${instance} "sudo /opt/cameoScripts/dockerHost/run.sh --registry=${2} --app-image=${1}"
-#		echo "foo"
-	fi
-
-
+	ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null deploy@${instance} "sudo /opt/cameoScripts/dockerHost/run.sh --registry=${2} --app-image=${1}"
 done
