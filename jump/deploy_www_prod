@@ -10,9 +10,9 @@ touch ./running_www
 
 set -e
 
-./deploy cameowww 172.16.23.2:5000 172.16.23.129 -update-www
-./deploy cameowww 172.16.23.2:5000 172.16.23.130 -update-www
-#./deploy cameowww 172.16.42.4:5000 172.16.42.15 -update-www
+#./deploy cameowww 172.16.23.2:5000 172.16.23.129 -update-www
+#./deploy cameowww 172.16.23.2:5000 172.16.23.130 -update-www
+./deploy cameowww 172.16.42.4:5000 172.16.42.15 -update-www
 
 if [ -s ./running_www ]; then
 	echo Deploy scheduled, running it now
