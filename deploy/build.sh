@@ -5,6 +5,8 @@ set -e
 buildMode=test
 buildApps=false
 apiPort=9000
+syslogFacility=LOCAL0
+jumpHostIP=172.16.23.2
 
 #handle arguments
 for i in "$@" ; do
@@ -76,6 +78,7 @@ currentBuild=""
 
 # helper function to get latest tag
 function checkoutLatestTag {
+	git reset --hard
 	git fetch 
 	git fetch --tags
 	tag=$(git for-each-ref --format="%(refname)" --sort=-taggerdate refs/tags | grep -i $1 | head -n1)
@@ -87,6 +90,7 @@ case "${buildMode}" in
 	"test")
 		quickCompile=true
 		copyFixtures=true
+		jumpHostIP=localhost
 
 		secretFile="secret_local.conf"
 	
@@ -115,6 +119,7 @@ case "${buildMode}" in
 
 	"stagetest")
 		copyFixtures=true
+		jumpHostIP=localhost
 
 		secretFile="secret_local.conf"
 	
@@ -136,6 +141,10 @@ case "${buildMode}" in
 	"dev")
 		quickCompile=true
 		secretFile="secret_dev.conf"
+		syslogFacility=LOCAL0
+		jumpHostIP=172.16.23.2
+
+		source ./cameoSecrets/phonegap_dev.conf
 		
 		cd ${serverDir}
 		checkoutLatestTag "build_" 
@@ -148,6 +157,10 @@ case "${buildMode}" in
 
 	"stage")
 		secretFile="secret_stage.conf"
+		syslogFacility=LOCAL1
+		jumpHostIP=172.16.23.2
+
+		source ./cameoSecrets/phonegap_stage.conf
 
 		cd ${serverDir}
 		checkoutLatestTag "stage_" 
@@ -158,15 +171,41 @@ case "${buildMode}" in
 		clientVersion=${version}.${currentBuild}
 		;;
 		
-	#"prod")
-		# todo
-	#	;;
+	"prod")
+		secretFile="secret_prod.conf"
+		syslogFacility=LOCAL2
+		jumpHostIP=172.16.42.4
+
+		source ./cameoSecrets/phonegap_prod.conf
+
+		serverVersion=${version}
+		clientVersion=${version}
+		
+		cd ${serverDir}
+		git reset --hard
+		git checkout master
+		git pull
+
+		cd ${clientDir}
+		git reset --hard
+		git checkout master
+		git pull
+		;;
 
 	*)
 		echo Invalid mode: ${buildMode}
 		exit 1
 		;;
 esac
+
+# unlock phonegap signing keys
+echo -e "\e[33m[ CameoBuild - Unlocking phonegap singing keys ]\033[0m"
+if [ -n "${phonegap_keys_ios_link}" ]; then
+	curl -u ${phonegap_user}:${phonegap_password} -d "data={\"password\":\"${phonegap_keys_ios_certpwd}\"}" -X PUT https://build.phonegap.com${phonegap_keys_ios_link}
+fi
+if [ -n "${phonegap_keys_android_link}" ]; then
+	curl -u ${phonegap_user}:${phonegap_password} -d "data={\"key_pw\":\"${phonegap_keys_android_certpwd}\",\"keystore_pw\":\"${phonegap_keys_android_keystorepwd}\"}" -X PUT https://build.phonegap.com${phonegap_keys_android_link}
+fi
 
 # build client	
 cd ${clientDir}
@@ -187,6 +226,10 @@ cp -r ${clientDir}/dist/* ${serverDir}/public/
 # build server
 echo -e "\e[33m[ CameoBuild - Building server, version: ${serverVersion}, quickCompile: ${quickCompile} ]\033[0m"
 cd ${serverDir}
+# adjust loggin configuration
+cp conf/logger_deploy.xml conf/logger.xml
+sed -i "s/XIPX/${jumpHostIP}/g" conf/logger.xml
+sed -i "s/XFACILITYX/${syslogFacility}/g" conf/logger.xml
 if [ "${quickCompile}" == true ]; then
 	./compile.sh ${serverVersion} quick
 else
