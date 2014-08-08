@@ -17,6 +17,7 @@ for i in "$@" ; do
 	    ;;
 	    --port=*)
 			port="${i#*=}"
+	    ;;
 	    *)
 	      echo Unkown option: ${i}
 	      exit 1
@@ -46,6 +47,13 @@ if [ ! -z "${appImage}" ]; then
 	sudo docker pull ${name}
 	sudo docker run -p ${port}:9000 -d ${name}
 	# cleanup unused containers and images
-	sudo docker rm $(sudo docker ps -qa)
-	sudo docker rmi $(sudo docker images | grep "^<none>" | tr -s ' ' | cut -d' ' -f3)
+	containers=$(sudo docker ps -a | grep Exited | tr -s ' ' | cut -d' ' -f1)
+	if [ -n "$containers" ]; then
+		sudo docker rm $containers
+	fi
+	images=$(sudo docker images | grep "^<none>" | tr -s ' ' | cut -d' ' -f3)
+	if [ -n "$images" ]; then
+		sudo docker rmi $images
+	fi
+
 fi
