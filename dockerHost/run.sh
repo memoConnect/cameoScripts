@@ -4,8 +4,7 @@ set -e
 # constants
 updateWww=false
 wwwImage="cameowww"
-wwwPort=9001
-appPort=9000
+port=9000
 
 # arguments
 for i in "$@" ; do
@@ -16,9 +15,8 @@ for i in "$@" ; do
 	    --registry=*)
 			registry="${i#*=}"	
 	    ;;
-	    --update-www)	
-			updateWww=true
-            ;;
+	    --port=*)
+			port="${i#*=}"
 	    *)
 	      echo Unkown option: ${i}
 	      exit 1
@@ -40,20 +38,14 @@ function stopContainer {
 	fi
 }
 
-#update www
-if [ "${updateWww}" == true ]; then
-	echo "Updating www image"
-	stopContainer ${wwwImage}	
-	name=${registry}/${wwwImage}
-	sudo docker pull ${name}
-	sudo docker run -p ${wwwPort}:9000 -d ${name}
-fi
-
 #update app
 if [ ! -z "${appImage}" ]; then
 	echo "Updating app image"
 	stopContainer ${appImage}	
 	name=${registry}/${appImage}
 	sudo docker pull ${name}
-	sudo docker run -p ${appPort}:9000 -d ${name}
+	sudo docker run -p ${port}:9000 -d ${name}
+	# cleanup unused containers and images
+	sudo docker rm $(sudo docker ps -qa)
+	sudo docker rmi $(sudo docker images | grep "^<none>" | tr -s ' ' | cut -d' ' -f3)
 fi
