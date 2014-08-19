@@ -10,7 +10,7 @@ touch ./running_dev
 
 set -e
 
-./deploy cameo-dev 172.16.23.2:5000 172.16.23.129 dev.cameo.io
+./deploy cameo-dev 172.16.23.2:5000 172.16.23.129
 
 if [ -s ./running_dev ]; then
 	echo Deploy scheduled, running it now

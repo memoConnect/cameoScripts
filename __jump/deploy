@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # check argument
 if [ -z "${1}" ] ;then
@@ -13,25 +13,14 @@ if [ -z "${3}" ]; then
 	echo provide ip of balancer
 	exit 1
 fi
-if [ -z "${4}" ]; then
-	echo provide monitoring name
-	exit 1
-fi
 
-if [ -n "${5}" ] ;then
-	port=${5}
-else 
-	port=9000	
+if [ "${4}" == "-update-www" ] ;then
+	echo updating www	
 fi
 
 backendKey=$(redis-cli -h ${3} keys \* | grep backend)
 echo "backend : $backendKey"
 instances=($(redis-cli -h ${3} smembers ${backendKey} | grep -v dummy |  sed 's/:80//'))
-
-# disable monitoring
-cd /opt/nagios_downtime
-./nagios_downtime -m add -H "${4}" -s "HTTPS ${4}" -t 10 -u memo-monitoring -P iex5Phux
-sleep 20
 
 for instance in "${instances[@]}"; do
         echo -e "\e[32m[CameoDeploy - Stoping instance ${instance} ]\033[0m"
@@ -40,10 +29,5 @@ done
 
 for instance in "${instances[@]}"; do
         echo -e "\e[32m[CameoDeploy - Deploying on instance ${instance} ]\033[0m"
-	ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null deploy@${instance} "sudo /opt/cameoScripts/dockerHost/run.sh --registry=${2} --app-image=${1} --port=${port}"
+	ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null deploy@${instance} "sudo /opt/cameoScripts/dockerHost/run.sh --registry=${2} --app-image=${1}"
 done
-
-# enable monitoring
-cd /opt/nagios_downtime
-./nagios_downtime -m del -H "${4}" -s "HTTPS ${4}" -t 10 -u memo-monitoring -P iex5Phux
-

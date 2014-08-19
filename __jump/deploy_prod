@@ -10,7 +10,7 @@ touch ./running_prod
 
 set -e
 
-./deploy cameo-prod 172.16.42.4:5000 172.16.42.15 www.cameonet.de
+./deploy cameo-prod 172.16.42.4:5000 172.16.42.15
 
 if [ -s ./running_prod ]; then
 	echo Deploy scheduled, running it now
