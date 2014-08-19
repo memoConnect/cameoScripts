@@ -42,20 +42,19 @@ clientGit=https://github.com/memoConnect/cameoJSClient.git
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd ${dir}
 
-# get versions
-cd ${serverDir}
-serverVerion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
-cd ${clientDir}
-clientVerion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
-
 echo -e "\e[33m[ CameoBuild - Build mode: ${buildMode}, Version: ${version} ]\033[0m"
 
 serverDir=${dir}/$(echo ${serverGit} | rev | cut -d"/" -f1 | rev | cut -d"." -f1)
 clientDir=${dir}/$(echo ${clientGit} | rev | cut -d"/" -f1 | rev | cut -d"." -f1) 
 secretDir=${dir}/cameoSecrets
 
-echo -e "\e[33m[ CameoBuild - Updating repositories ]\033[0m"
+# get versions
+cd ${serverDir}
+serverVerion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
+cd ${clientDir}
+clientVerion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
 
+echo -e "\e[33m[ CameoBuild - Updating repositories ]\033[0m"
 # clone repos if dirs dont exist
 export GIT_SSL_NO_VERIFY=true
 if [ ! -d "${serverDir}" ]; then
