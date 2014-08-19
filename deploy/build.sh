@@ -42,12 +42,11 @@ clientGit=https://github.com/memoConnect/cameoJSClient.git
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd ${dir}
 
-# get current version
-if [ -s ./version ]; then
-	version=$(cat ./version)
-else
-	version="no version"
-fi
+# get versions
+cd ${serverDir}
+serverVerion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
+cd ${clientDir}
+clientVerion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
 
 echo -e "\e[33m[ CameoBuild - Build mode: ${buildMode}, Version: ${version} ]\033[0m"
 
@@ -100,20 +99,20 @@ case "${buildMode}" in
 		if [ "${latestServer}" == true ]; then
 			git checkout dev
 			git pull
-			serverVersion=${version}_"dev"
+			serverVersion=${serverVersion}_"dev"
 		else
 			checkoutLatestTag "build_" 
-			serverVersion=${version}.${currentBuild}			
+			serverVersion=${serverVersion}.${currentBuild}			
 		fi
 
 		cd ${clientDir}
 		if [ "${latestClient}" == true ]; then
 			git checkout dev
 			git pull
-			clientVersion=${version}_"dev"
+			clientVersion=${clientVersion}_"dev"
 		else
 			checkoutLatestTag "build_" 
-			clientVersion=${version}.${currentBuild}	
+			clientVersion=${clientVersion}.${currentBuild}	
 		fi	
 		;;
 
@@ -129,13 +128,13 @@ case "${buildMode}" in
 		git fetch 
 		git fetch --tags
 		git checkout tags/stage
-		serverVersion=${version}_"stage"
+		serverVersion=${serverVersion}_"stage"
 
 		cd ${clientDir}
 		git fetch 
 		git fetch --tags
 		git checkout tags/stage
-		clientVersion=${version}_"stage"
+		clientVersion=${serverVersion}_"stage"
 		;;
 
 	"dev")
@@ -148,11 +147,11 @@ case "${buildMode}" in
 		
 		cd ${serverDir}
 		checkoutLatestTag "build_" 
-		serverVersion=${version}.${currentBuild}			
+		serverVersion=${serverVersion}.${currentBuild}			
 
 		cd ${clientDir}
 		checkoutLatestTag "build_" 
-		clientVersion=${version}.${currentBuild}	
+		clientVersion=${serverVersion}.${currentBuild}	
 		;;
 
 	"stage")
@@ -164,11 +163,11 @@ case "${buildMode}" in
 
 		cd ${serverDir}
 		checkoutLatestTag "stage_" 
-		serverVersion=${version}.${currentBuild}
+		serverVersion=${serverVersion}.${currentBuild}
 
 		cd ${clientDir}
 		checkoutLatestTag "stage_" 
-		clientVersion=${version}.${currentBuild}
+		clientVersion=${serverVersion}.${currentBuild}
 		;;
 		
 	"prod")
@@ -178,8 +177,8 @@ case "${buildMode}" in
 
 		source ./cameoSecrets/phonegap_prod.conf
 
-		serverVersion=${version}
-		clientVersion=${version}
+		serverVersion=${serverVersion}
+		clientVersion=${clientVersion}
 		
 		cd ${serverDir}
 		git reset --hard
