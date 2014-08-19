@@ -142,7 +142,7 @@ case "${buildMode}" in
 		syslogFacility=LOCAL0
 		jumpHostIP=172.16.23.2
 
-		source ./cameoSecrets/phonegap_dev.conf
+		source ${secretDir}/phonegap_dev.conf
 		
 		cd ${serverDir}
 		checkoutLatestTag "build_" 
@@ -158,7 +158,7 @@ case "${buildMode}" in
 		syslogFacility=LOCAL1
 		jumpHostIP=172.16.23.2
 
-		source ./cameoSecrets/phonegap_stage.conf
+		source ${secretDir}/phonegap_stage.conf
 
 		cd ${serverDir}
 		checkoutLatestTag "stage_" 
@@ -174,7 +174,7 @@ case "${buildMode}" in
 		syslogFacility=LOCAL2
 		jumpHostIP=172.16.42.4
 
-		source ./cameoSecrets/phonegap_prod.conf
+		source ${secretDir}/phonegap_prod.conf
 
 		serverVersion=${serverVersion}
 		clientVersion=${clientVersion}
