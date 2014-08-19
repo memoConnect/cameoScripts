@@ -133,7 +133,7 @@ case "${buildMode}" in
 		cd ${clientDir}
 		git fetch 
 		git checkout tags/stage
-		clientVersion=${serverVersion}_"stage"
+		clientVersion=${clientVersion}_"stage"
 		;;
 
 	"dev")
@@ -150,7 +150,7 @@ case "${buildMode}" in
 
 		cd ${clientDir}
 		checkoutLatestTag "build_" 
-		clientVersion=${serverVersion}.${currentBuild}	
+		clientVersion=${clientVersion}.${currentBuild}	
 		;;
 
 	"stage")
@@ -166,7 +166,7 @@ case "${buildMode}" in
 
 		cd ${clientDir}
 		checkoutLatestTag "stage_" 
-		clientVersion=${serverVersion}.${currentBuild}
+		clientVersion=${clientVersion}.${currentBuild}
 		;;
 		
 	"prod")
