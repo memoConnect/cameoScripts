@@ -42,17 +42,11 @@ clientGit=https://github.com/memoConnect/cameoJSClient.git
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd ${dir}
 
-echo -e "\e[33m[ CameoBuild - Build mode: ${buildMode}, Version: ${version} ]\033[0m"
+echo -e "\e[33m[ CameoBuild - Build mode: ${buildMode} ]\033[0m"
 
 serverDir=${dir}/$(echo ${serverGit} | rev | cut -d"/" -f1 | rev | cut -d"." -f1)
 clientDir=${dir}/$(echo ${clientGit} | rev | cut -d"/" -f1 | rev | cut -d"." -f1) 
 secretDir=${dir}/cameoSecrets
-
-# get versions
-cd ${serverDir}
-serverVerion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
-cd ${clientDir}
-clientVerion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
 
 echo -e "\e[33m[ CameoBuild - Updating repositories ]\033[0m"
 # clone repos if dirs dont exist
@@ -69,6 +63,14 @@ if [ ! -d "${secretDir}" ]; then
 	echo No cameoSecrets found in dir: ${secretDir}
 	exit 1
 fi
+
+# get versions
+cd ${serverDir}
+git fetch --tags
+serverVersion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
+cd ${clientDir}
+git fetch --tags
+clientVersion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
 
 quickCompile=false
 copyFixtures=false
@@ -125,13 +127,11 @@ case "${buildMode}" in
 
 		cd ${serverDir} 
 		git fetch 
-		git fetch --tags
 		git checkout tags/stage
 		serverVersion=${serverVersion}_"stage"
 
 		cd ${clientDir}
 		git fetch 
-		git fetch --tags
 		git checkout tags/stage
 		clientVersion=${serverVersion}_"stage"
 		;;
