@@ -5,6 +5,8 @@ set -e
 buildMode=test
 buildApps=false
 apiPort=9000
+syslogFacility=LOCAL0
+jumpHostIP=172.16.23.2
 
 #handle arguments
 for i in "$@" ; do
@@ -40,21 +42,13 @@ clientGit=https://github.com/memoConnect/cameoJSClient.git
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd ${dir}
 
-# get current version
-if [ -s ./version ]; then
-	version=$(cat ./version)
-else
-	version="no version"
-fi
-
-echo -e "\e[33m[ CameoBuild - Build mode: ${buildMode}, Version: ${version} ]\033[0m"
+echo -e "\e[33m[ CameoBuild - Build mode: ${buildMode} ]\033[0m"
 
 serverDir=${dir}/$(echo ${serverGit} | rev | cut -d"/" -f1 | rev | cut -d"." -f1)
 clientDir=${dir}/$(echo ${clientGit} | rev | cut -d"/" -f1 | rev | cut -d"." -f1) 
 secretDir=${dir}/cameoSecrets
 
 echo -e "\e[33m[ CameoBuild - Updating repositories ]\033[0m"
-
 # clone repos if dirs dont exist
 export GIT_SSL_NO_VERIFY=true
 if [ ! -d "${serverDir}" ]; then
@@ -70,12 +64,21 @@ if [ ! -d "${secretDir}" ]; then
 	exit 1
 fi
 
+# get versions
+cd ${serverDir}
+git fetch --tags
+serverVersion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
+cd ${clientDir}
+git fetch --tags
+clientVersion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
+
 quickCompile=false
 copyFixtures=false
 currentBuild=""
 
 # helper function to get latest tag
 function checkoutLatestTag {
+	git reset --hard
 	git fetch 
 	git fetch --tags
 	tag=$(git for-each-ref --format="%(refname)" --sort=-taggerdate refs/tags | grep -i $1 | head -n1)
@@ -87,6 +90,7 @@ case "${buildMode}" in
 	"test")
 		quickCompile=true
 		copyFixtures=true
+		jumpHostIP=localhost
 
 		secretFile="secret_local.conf"
 	
@@ -96,25 +100,26 @@ case "${buildMode}" in
 		if [ "${latestServer}" == true ]; then
 			git checkout dev
 			git pull
-			serverVersion=${version}_"dev"
+			serverVersion=${serverVersion}_"dev"
 		else
 			checkoutLatestTag "build_" 
-			serverVersion=${version}.${currentBuild}			
+			serverVersion=${serverVersion}.${currentBuild}			
 		fi
 
 		cd ${clientDir}
 		if [ "${latestClient}" == true ]; then
 			git checkout dev
 			git pull
-			clientVersion=${version}_"dev"
+			clientVersion=${clientVersion}_"dev"
 		else
 			checkoutLatestTag "build_" 
-			clientVersion=${version}.${currentBuild}	
+			clientVersion=${clientVersion}.${currentBuild}	
 		fi	
 		;;
 
 	"stagetest")
 		copyFixtures=true
+		jumpHostIP=localhost
 
 		secretFile="secret_local.conf"
 	
@@ -122,53 +127,65 @@ case "${buildMode}" in
 
 		cd ${serverDir} 
 		git fetch 
-		git fetch --tags
 		git checkout tags/stage
-		serverVersion=${version}_"stage"
+		serverVersion=${serverVersion}_"stage"
 
 		cd ${clientDir}
 		git fetch 
-		git fetch --tags
 		git checkout tags/stage
-		clientVersion=${version}_"stage"
+		clientVersion=${clientVersion}_"stage"
 		;;
 
 	"dev")
 		quickCompile=true
 		secretFile="secret_dev.conf"
+		syslogFacility=LOCAL0
+		jumpHostIP=172.16.23.2
+
+		source ${secretDir}/phonegap_dev.conf
 		
 		cd ${serverDir}
 		checkoutLatestTag "build_" 
-		serverVersion=${version}.${currentBuild}			
+		serverVersion=${serverVersion}.${currentBuild}			
 
 		cd ${clientDir}
 		checkoutLatestTag "build_" 
-		clientVersion=${version}.${currentBuild}	
+		clientVersion=${clientVersion}.${currentBuild}	
 		;;
 
 	"stage")
 		secretFile="secret_stage.conf"
+		syslogFacility=LOCAL1
+		jumpHostIP=172.16.23.2
+
+		source ${secretDir}/phonegap_stage.conf
 
 		cd ${serverDir}
 		checkoutLatestTag "stage_" 
-		serverVersion=${version}.${currentBuild}
+		serverVersion=${serverVersion}.${currentBuild}
 
 		cd ${clientDir}
 		checkoutLatestTag "stage_" 
-		clientVersion=${version}.${currentBuild}
+		clientVersion=${clientVersion}.${currentBuild}
 		;;
 		
 	"prod")
 		secretFile="secret_prod.conf"
+		syslogFacility=LOCAL2
+		jumpHostIP=172.16.42.4
 
-		serverVersion=${version}
-		clientVersion=${version}
+		source ${secretDir}/phonegap_prod.conf
+
+		serverVersion=${serverVersion}
+		clientVersion=${clientVersion}
 		
 		cd ${serverDir}
+		git reset --hard
 		git checkout master
 		git pull
 
 		cd ${clientDir}
+		git reset --hard
 		git checkout master
 		git pull
 		;;
@@ -178,6 +195,15 @@ case "${buildMode}" in
 		exit 1
 		;;
 esac
+
+# unlock phonegap signing keys
+echo -e "\e[33m[ CameoBuild - Unlocking phonegap singing keys ]\033[0m"
+if [ -n "${phonegap_keys_ios_link}" ]; then
+	curl -u ${phonegap_user}:${phonegap_password} -d "data={\"password\":\"${phonegap_keys_ios_certpwd}\"}" -X PUT https://build.phonegap.com${phonegap_keys_ios_link}
+fi
+if [ -n "${phonegap_keys_android_link}" ]; then
+	curl -u ${phonegap_user}:${phonegap_password} -d "data={\"key_pw\":\"${phonegap_keys_android_certpwd}\",\"keystore_pw\":\"${phonegap_keys_android_keystorepwd}\"}" -X PUT https://build.phonegap.com${phonegap_keys_android_link}
+fi
 
 # build client	
 cd ${clientDir}
@@ -198,6 +224,10 @@ cp -r ${clientDir}/dist/* ${serverDir}/public/
 # build server
 echo -e "\e[33m[ CameoBuild - Building server, version: ${serverVersion}, quickCompile: ${quickCompile} ]\033[0m"
 cd ${serverDir}
+# adjust loggin configuration
+cp conf/logger_deploy.xml conf/logger.xml
+sed -i "s/XIPX/${jumpHostIP}/g" conf/logger.xml
+sed -i "s/XFACILITYX/${syslogFacility}/g" conf/logger.xml
 if [ "${quickCompile}" == true ]; then
 	./compile.sh ${serverVersion} quick
 else
