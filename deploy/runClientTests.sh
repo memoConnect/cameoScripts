@@ -1,7 +1,7 @@
 #!/bin/bash
 imageName="cameo-test"
 imagePort=9000
-embedMongoFile="/opt/mongodb-linux-x86_64-2.6.3.tgz"
+embedMongoFile="/opt/mongodb-linux-x86_64-2.6.4.tgz"
 
 if [ ! -z "$1" ]; then
 	imagePort=$1
