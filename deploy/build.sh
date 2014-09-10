@@ -117,25 +117,6 @@ case "${buildMode}" in
 		fi	
 		;;
 
-	"stagetest")
-		copyFixtures=true
-		jumpHostIP=localhost
-
-		secretFile="secret_local.conf"
-	
-		apiUrlArg="--apiUrl=http://localhost:${apiPort}/a/v1"
-
-		cd ${serverDir} 
-		git fetch 
-		git checkout tags/stage
-		serverVersion=${serverVersion}_"stage"
-
-		cd ${clientDir}
-		git fetch 
-		git checkout tags/stage
-		clientVersion=${clientVersion}_"stage"
-		;;
-
 	"dev")
 		quickCompile=true
 		secretFile="secret_dev.conf"
