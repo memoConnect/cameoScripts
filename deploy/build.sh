@@ -98,6 +98,7 @@ case "${buildMode}" in
 
 		cd ${serverDir}
 		if [ "${latestServer}" == true ]; then
+			git reset --hard
 			git checkout dev
 			git pull
 			serverVersion=${serverVersion}_"dev"
@@ -108,6 +109,7 @@ case "${buildMode}" in
 
 		cd ${clientDir}
 		if [ "${latestClient}" == true ]; then
+			git reset --hard
 			git checkout dev
 			git pull
 			clientVersion=${clientVersion}_"dev"
