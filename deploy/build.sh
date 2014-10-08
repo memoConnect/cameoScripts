@@ -101,7 +101,7 @@ case "${buildMode}" in
 			git reset --hard
 			git checkout dev
 			git pull
-			serverVersion=${serverVersion}_"dev"
+			serverVersion=${serverVersion}
 		else
 			checkoutLatestTag "build_" 
 			serverVersion=${serverVersion}.${currentBuild}			
@@ -112,7 +112,7 @@ case "${buildMode}" in
 			git reset --hard
 			git checkout dev
 			git pull
-			clientVersion=${clientVersion}_"dev"
+			clientVersion=${clientVersion}
 		else
 			checkoutLatestTag "build_" 
 			clientVersion=${clientVersion}.${currentBuild}	
