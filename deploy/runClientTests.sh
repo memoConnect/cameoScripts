@@ -33,6 +33,6 @@ cd cameoJSClient
 echo -e "\e[33m[ CameoTest - Stopping test container ]\033[0m"
 sudo docker stop ${containerId}
 echo -e "\e[33m[ CameoTest - Removing test container ]\033[0m"
-#sudo docker rm ${containerId}
+sudo docker rm ${containerId}
 
 
