@@ -201,7 +201,10 @@ fi
 # remove old client stuff
 rm -rf ${serverDir}/public
 # copy compiled client to public dir of server
-mkdir -p ${serverDir}/public
+mkdir -p ${serverDir}/public/dist
+cp -r ${clientDir}/dist/* ${serverDir}/public/dist/
+
+# DELETE!!! when new folder structure is on also on prod
 cp -r ${clientDir}/dist/* ${serverDir}/public/
 
 # build server
