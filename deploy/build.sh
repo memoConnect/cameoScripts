@@ -136,6 +136,8 @@ case "${buildMode}" in
 		git fetch 
 		git checkout tags/stage
 		clientVersion=${clientVersion}_"stage"
+		
+		buildMode="stage"
 		;;	
 
 	"dev")
