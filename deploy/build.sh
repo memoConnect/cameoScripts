@@ -78,7 +78,7 @@ currentBuild=""
 
 # helper function to get latest tag
 function checkoutLatestTag {
-	git reset --hard
+	git clean -d -f
 	git fetch 
 	git fetch --tags
 	tag=$(git for-each-ref --format="%(refname)" --sort=-taggerdate refs/tags | grep -i $1 | head -n1)
@@ -98,7 +98,7 @@ case "${buildMode}" in
 
 		cd ${serverDir}
 		if [ "${latestServer}" == true ]; then
-			git reset --hard
+			git clean -d -f
 			git checkout dev
 			git pull
 			serverVersion=${serverVersion}
@@ -109,7 +109,7 @@ case "${buildMode}" in
 
 		cd ${clientDir}
 		if [ "${latestClient}" == true ]; then
-			git reset --hard
+			git clean -d -f
 			git checkout dev
 			git pull
 			clientVersion=${clientVersion}
@@ -128,11 +128,13 @@ case "${buildMode}" in
 		apiUrlArg="--apiUrl=http://localhost:${apiPort}/a/v1"
 
 		cd ${serverDir} 
+		git clean -d -f
 		git fetch 
 		git checkout tags/stage
 		serverVersion=${serverVersion}_"stage"
 
 		cd ${clientDir}
+		git clean -d -f
 		git fetch 
 		git checkout tags/stage
 		clientVersion=${clientVersion}_"stage"
@@ -184,12 +186,12 @@ case "${buildMode}" in
 		clientVersion=${clientVersion}
 		
 		cd ${serverDir}
-		git reset --hard
+		git clean -d -f
 		git checkout master
 		git pull
 
 		cd ${clientDir}
-		git reset --hard
+		git clean -d -f
 		git checkout master
 		git pull
 		;;
