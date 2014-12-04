@@ -14,4 +14,4 @@ WORKDIR /opt/app/
 
 ENTRYPOINT ["bin/cameoserver"]
 
-CMD ["-Dconfig.file=conf/secret.conf"]
+CMD ["-Dconfig.file=conf/secret.conf","-Dfile.encoding=UTF-8"]
