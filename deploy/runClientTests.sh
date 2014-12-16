@@ -24,7 +24,7 @@ containerId=$(sudo docker ps | grep ${imageName} | cut -f1 -d' ')
 timeout=50
 while [ -z "${log}" ] && [ "$timeout" -gt 0 ]; do
 	echo waiting for container to start. Patience left: ${timeout}
-	log=$(sudo docker logs ${containerId} | grep Listening)
+	log=$(sudo docker logs ${containerId} | grep Listening || true)
 	sleep 2	
 	timeout=`expr $timeout - 1` 
 done
