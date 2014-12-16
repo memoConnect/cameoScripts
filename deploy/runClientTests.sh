@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 imageName="cameo-test"
 imagePort=9000
 embedMongoFile="/opt/mongodb-linux-x86_64-2.6.5.tgz"
