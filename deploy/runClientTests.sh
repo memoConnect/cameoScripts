@@ -28,7 +28,7 @@ while [ -z "${log}" ] && [ "$timeout" -gt 0 ]; do
 done
 
 cd cameoJSClient
-./test.sh test http://localhost:${imagePort}/m/ http://localhost:${imagePort}/a/v1 
+./test.sh test http://localhost:${imagePort}/m/ http://localhost:${imagePort}/a/ 
 
 exitStatus=$?
 
