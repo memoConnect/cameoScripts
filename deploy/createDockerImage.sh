@@ -13,6 +13,8 @@ cd docker
 sudo docker build -t ${1} --rm .
 
 if [ "$2" == "push" ]; then
-	echo "Pushing to: "${1} 
-	sudo docker --insecure-registry ${1} push ${1}
+	domain=$(echo ${1} | cut -d'/' -f1) 
+	echo "Pushing to: "${1}
+	echo "Domain: "${domain}
+	sudo docker --insecure-registry ${domain} push ${1}
 fi	
