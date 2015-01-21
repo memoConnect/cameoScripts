@@ -14,5 +14,5 @@ sudo docker build -t ${1} --rm .
 
 if [ "$2" == "push" ]; then
 	echo "Pushing to: "${1} 
-	sudo docker push --insecure-registry ${1}
+	sudo docker --insecure-registry ${1} push ${1}
 fi	
