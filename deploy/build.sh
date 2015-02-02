@@ -211,6 +211,11 @@ if [ -n "${phonegap_keys_android_link}" ]; then
 	curl -u ${phonegap_user}:${phonegap_password} -d "data={\"key_pw\":\"${phonegap_keys_android_certpwd}\",\"keystore_pw\":\"${phonegap_keys_android_keystorepwd}\"}" -X PUT https://build.phonegap.com${phonegap_keys_android_link}
 fi
 
+# debug output
+echo "JAVA_HOME: $JAVA_HOME"
+echo "ANDROID_HOME: $ANDROID_HOME"
+echo "USER: " $(whoami)
+
 # build client	
 cd ${clientDir}
 if [ "${buildApps}" == true ]; then
