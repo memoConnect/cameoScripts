@@ -77,6 +77,7 @@ clientVersion=$(git tag -l "version*" | cut -d'-' -f2 | sort -V | tail -n1)
 
 quickCompile=false
 copyFixtures=false
+disableUglify=false
 currentBuild=""
 
 # helper function to get latest tag
@@ -149,6 +150,7 @@ case "${buildMode}" in
 	"custom")
 		quickCompile=true
 		copyFixtures=true
+		disableUglify=true
 		jumpHostIP=localhost
 
 		secretFile="secret_local.conf"
@@ -255,6 +257,9 @@ cd ${clientDir}
 if [ "${buildApps}" == true ]; then
 	echo -e "\e[33m[ CameoBuild - Building client with mobile apps, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
 	./compile.sh --mode=${buildMode} ${apiUrlArg} --version=${clientVersion} --phonegap 
+elif [ "${buildApps}" == true ]; then
+	echo -e "\e[33m[ CameoBuild - Building client, mode: ${buildMode}, version: ${clientVersion}, disableUglify: true ]\033[0m"
+	./compile.sh --mode=${buildMode} ${apiUrlArg} --version=${clientVersion} --disableUglify
 else
 	echo -e "\e[33m[ CameoBuild - Building client, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
 	./compile.sh --mode=${buildMode} ${apiUrlArg} --version=${clientVersion} 
