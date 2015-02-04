@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# default buildmode ist test
+# default buildmode is test
 buildMode=test
 buildApps=false
 apiPort=9000
@@ -20,8 +20,11 @@ for i in "$@" ; do
 	    -latestClient|--latestClient)
 	    	latestClient=true
 	    ;;	
-	    -p=*|--port*)
+	    -p=*|--port=*)
 		    apiPort="${i#*=}"
+		;;
+		--clientCommit=*)
+			clientCommit="${i#*=}"
 		;;
 		-a|--build-apps)
 			buildApps=true
@@ -142,6 +145,42 @@ case "${buildMode}" in
 		buildMode="stage"
 		;;	
 
+
+	"custom")
+		quickCompile=true
+		copyFixtures=true
+		jumpHostIP=localhost
+
+		secretFile="secret_local.conf"
+	
+		apiUrlArg="--apiUrl=http://localhost:${apiPort}/a/"
+
+		cd ${serverDir}
+		if [ "${latestServer}" == true ]; then
+			git clean -d -f
+			git checkout dev
+			git pull
+			serverVersion=${serverVersion}
+		else
+			checkoutLatestTag "build_" 
+			serverVersion=${serverVersion}.${currentBuild}			
+		fi
+
+		cd ${clientDir}
+		if [ -z "${clientCommit}" ]; then
+			git clean -d -f
+			git checkout dev
+			git pull
+			clientVersion=${clientVersion}
+		else
+			git clean -d -f
+			git checkout ${clientCommit}
+			clientVersion=${clientVersion}.1337
+		fi	
+		buildMode="test"
+		;;	
+
+
 	"dev")
 		quickCompile=true
 		secretFile="secret_dev.conf"
@@ -211,11 +250,6 @@ if [ -n "${phonegap_keys_android_link}" ]; then
 	curl -u ${phonegap_user}:${phonegap_password} -d "data={\"key_pw\":\"${phonegap_keys_android_certpwd}\",\"keystore_pw\":\"${phonegap_keys_android_keystorepwd}\"}" -X PUT https://build.phonegap.com${phonegap_keys_android_link}
 fi
 
-# debug output
-echo "JAVA_HOME: $JAVA_HOME"
-echo "ANDROID_HOME: $ANDROID_HOME"
-echo "USER: " $(whoami)
-
 # build client	
 cd ${clientDir}
 if [ "${buildApps}" == true ]; then
@@ -233,12 +267,12 @@ mkdir -p ${serverDir}/public/dist
 cp -r ${clientDir}/dist/* ${serverDir}/public/dist/
 
 # DELETE!!! when new folder structure is on also on prod
-cp -r ${clientDir}/dist/* ${serverDir}/public/
+#cp -r ${clientDir}/dist/* ${serverDir}/public/
 
 # build server
 echo -e "\e[33m[ CameoBuild - Building server, version: ${serverVersion}, quickCompile: ${quickCompile} ]\033[0m"
 cd ${serverDir}
-# adjust loggin configuration
+# adjust logging configuration
 cp conf/logger_deploy.xml conf/logger.xml
 sed -i "s/XIPX/${jumpHostIP}/g" conf/logger.xml
 sed -i "s/XFACILITYX/${syslogFacility}/g" conf/logger.xml
