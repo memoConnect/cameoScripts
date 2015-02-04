@@ -257,7 +257,7 @@ cd ${clientDir}
 if [ "${buildApps}" == true ]; then
 	echo -e "\e[33m[ CameoBuild - Building client with mobile apps, mode: ${buildMode}, version: ${clientVersion} ]\033[0m"
 	./compile.sh --mode=${buildMode} ${apiUrlArg} --version=${clientVersion} --phonegap 
-elif [ "${buildApps}" == true ]; then
+elif [ "${disableUglify}" == true ]; then
 	echo -e "\e[33m[ CameoBuild - Building client, mode: ${buildMode}, version: ${clientVersion}, disableUglify: true ]\033[0m"
 	./compile.sh --mode=${buildMode} ${apiUrlArg} --version=${clientVersion} --disableUglify
 else
