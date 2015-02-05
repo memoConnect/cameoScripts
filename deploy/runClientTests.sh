@@ -39,7 +39,7 @@ while [ -z "${log}" ] && [ "$timeout" -gt 0 ]; do
 done
 
 cd cameoJSClient
-./test.sh --target=test --wwwUrl=http://localhost:${imagePort}/m/ --apiUrl=http://localhost:${imagePort}/a/ --specs="$2" --testScreenshotPath=${screenshotPath}
+./test.sh --target=test --wwwUrl=http://localhost:${imagePort}/m/ --apiUrl=http://localhost:${imagePort}/a/ --specs="${specs}" --testScreenshotPath=${screenshotPath}
 
 exitStatus=$?
 
