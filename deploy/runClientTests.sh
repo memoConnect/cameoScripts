@@ -3,14 +3,22 @@ imageName="cameo-test"
 imagePort=9000
 embedMongoFile="/opt/mongodb-linux-x86_64-2.6.*"
 
-if [ ! -z "$1" ]; then
-	imagePort=$1
-fi	
-
-if [ ! -z "$2" ]; then
-	imageName="cameo-test-custom"
-	echo -e "\e[33m[ CameoTest - Running with custom specs: $2 ]\033[0m"
-fi	
+#handle arguments
+for i in "$@" ; do
+	case $i in
+	    --imagePort=*)			
+		    imagePort="${i#*=}"
+	    ;;
+	    --specs=*)	
+	    	imageName="cameo-test-custom"		
+		    specs="${i#*=}"
+			echo -e "\e[33m[ CameoTest - Running with custom specs: $2 ]\033[0m"
+		;;
+	    --screenshotPath=*)			
+		    screenshotPath="${i#*=}"
+	    ;;
+	esac
+done
 
 echo -e "\e[33m[ CameoTest - Running tests on port: ${imagePort} ]\033[0m"
 
@@ -31,7 +39,7 @@ while [ -z "${log}" ] && [ "$timeout" -gt 0 ]; do
 done
 
 cd cameoJSClient
-./test.sh test http://localhost:${imagePort}/m/ http://localhost:${imagePort}/a/ "$2"
+./test.sh --target=test --wwwUrl=http://localhost:${imagePort}/m/ --apiUrl=http://localhost:${imagePort}/a/ --specs="$2" --screenshotPath=${screenshotPath}
 
 exitStatus=$?
 
